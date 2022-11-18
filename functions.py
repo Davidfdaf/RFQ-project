@@ -1,10 +1,13 @@
 import pandas as pd
 import numpy as np
 
-def max_pnl_price(delta_range,trade,cols,model1,model2,penalty):
-    delta_range =delta_range
+def max_pnl_price(next_mid_price,bonderror,trade,cols,model1,model2,penalty):
     sample = pd.DataFrame()
-    sample['delta_from_mid'] = delta_range[::-1]
+    cut_off = next_mid_price/trade['MidPrice']
+    if trade['Side']=='Bid':
+        sample['delta_from_mid'] = np.arange(0.8,cut_off-bonderror,0.01)
+    if trade['Side']=='Offer':
+        sample['delta_from_mid'] = np.arange(cut_off+bonderror,1.2,0.01)
     cols = cols.drop('delta_from_mid')
     sample[cols] = trade.drop('delta_from_mid')
 
