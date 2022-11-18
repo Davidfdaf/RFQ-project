@@ -1,17 +1,17 @@
 import pandas as pd
 import numpy as np
 
-def max_pnl_price(next_mid_price,bonderror,trade,cols,model1,model2,penalty):
+def max_pnl_price(bonderror,trade,column1,column2,model1,model2,penalty):
     sample = pd.DataFrame()
-    cut_off = next_mid_price/trade['MidPrice']
-    if trade['Side']=='Bid':
-        sample['delta_from_mid'] = np.arange(0.8,cut_off-bonderror,0.01)
-    if trade['Side']=='Offer':
-        sample['delta_from_mid'] = np.arange(cut_off+bonderror,1.2,0.01)
-    cols = cols.drop('delta_from_mid')
-    sample[cols] = trade.drop('delta_from_mid')
+    cut_off = trade['next_mid_price']/trade['MidPrice']
+    if trade['Side']==1:
+        sample['delta_from_mid'] = np.arange(min(0.1,cut_off-bonderror),max(0.1,cut_off-bonderror),0.01)
+    if trade['Side']==-1:
+        sample['delta_from_mid'] = np.arange(min(cut_off+bonderror),max(cut_off+bonderror),1.2,0.01)
+    
+    sample[column1] = trade[column1]
 
-    sample['P_trade'],sample['P_pospnl']=model1.predict_proba(sample.drop(columns=['Traded','PnL']).values)[:, 1],model2.predict_proba(sample.drop(columns=['Traded','PnL']).values)[:, 1]
+    sample['P_trade'],sample['P_pospnl']=model1.predict_proba(sample.drop(columns=['delta_from_mid']).values)[:, 1],model2.predict_proba(sample.drop(columns=['delta_from_mid']).values)[:, 1]
 
     # 0 for missing trade, 1 for trading and positive pnl, -1 for trading and negative pnl
     sample['Exp_PnL'] = (sample['P_trade']*sample['P_pospnl'])-penalty*(sample['P_trade']*(1-sample['P_pospnl']))
